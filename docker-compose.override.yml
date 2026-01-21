@@ -1,0 +1,20 @@
+# Local development overrides
+# Auto-loaded by: docker-compose up
+# Put dev-specific configurations here
+
+services:
+  api:
+    # Mount additional dev tools/scripts
+    volumes:
+      - ./dev-tools:/app/dev-tools:ro
+    # Disable resource limits for development
+    deploy:
+      resources:
+        limits: {}
+
+  web:
+    # Enable Next.js debug mode
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./web/.next:/app/.next

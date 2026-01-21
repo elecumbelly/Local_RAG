@@ -1,0 +1,7 @@
+rulesets:
+  - p/default
+paths:
+  exclude:
+    - web/node_modules
+    - web/.next
+    - "**/dist"

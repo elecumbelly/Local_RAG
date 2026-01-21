@@ -1,0 +1,19 @@
+collections:
+  library:
+    roots: ["/corpora/library"]
+    include: ["**/*.pdf"]
+    exclude: []
+    tags: ["library"]
+    hooks:
+      pre_ingest: "hooks/pre-ingest-library.sh"
+      post_ingest: "hooks/post-ingest-library.sh"
+  dev:
+    roots: ["/corpora/dev"]
+    include: ["**/*.pdf"]
+    exclude: ["**/tmp/**"]
+    tags: ["dev"]
+  test:
+    roots: ["/corpora/test"]
+    include: ["**/*.pdf"]
+    exclude: []
+    tags: ["test", "eval"]

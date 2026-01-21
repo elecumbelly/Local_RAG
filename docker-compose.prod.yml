@@ -1,0 +1,95 @@
+services:
+  db:
+    image: ${PGVECTOR_IMAGE:-ankane/pgvector@sha256:ad2a8a1572e4f9d5c6a8d814971eabddff796265b5a43f63efa9be1cf6cbb2c6}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nexus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nexus}
+      POSTGRES_DB: nexus
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama@sha256:0c4c4fdf49a046aa5111ef1f61c2167e4fbba27de6d7da6f61be993ec7aee1c4}
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      OLLAMA_HOST: 0.0.0.0
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      DATABASE_URL: postgresql://nexus:nexus@db:5432/nexus
+      OLLAMA_URL: http://ollama:11434
+      CORPORA_MANIFEST: /app/corpora.yml
+      PROCESSED_DIR: /processed
+      NEXUS_API_KEY_FILE: /run/secrets/api_key
+      NEXUS_ALLOW_ORIGINS: ${NEXUS_ALLOW_ORIGINS:-["http://localhost:3000"]}
+      NEXUS_PASSWORD: ${NEXUS_PASSWORD:-nexus-local-rag}
+      PYTHONUNBUFFERED: "1"
+    secrets:
+      - api_key
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    volumes:
+      - ./corpora.yml:/app/corpora.yml:ro
+      - ./data:/app/data:ro
+      - ./corpora:/corpora:ro
+      - processed:/processed
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    command: ["uvicorn", "nexus.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE: http://localhost:8000
+      API_KEY_FILE: /run/secrets/api_key
+      NEXUS_PASSWORD: ${NEXUS_PASSWORD:-nexus-local-rag}
+    secrets:
+      - api_key
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    command: ["npm", "run", "start"]
+
+secrets:
+  api_key:
+    file: ./secrets/api_key
+
+volumes:
+  pgdata:
+  ollama:
+  processed:

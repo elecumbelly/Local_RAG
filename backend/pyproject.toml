@@ -1,0 +1,37 @@
+[project]
+name = "nexus-local-rag"
+version = "0.1.0"
+description = "Local offline RAG stack with FastAPI and pgvector"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "psycopg[binary,pool]>=3.1.18",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.1",
+    "python-dotenv>=1.0.1",
+    "httpx>=0.27.0",
+    "pypdf>=4.2.0",
+    "ocrmypdf>=16.6.0",
+    "pyyaml>=6.0.1",
+    "python-multipart>=0.0.9",
+    "tenacity>=8.2.3",
+    "numpy>=1.26.4",
+    "inspect-ai>=0.2.8",
+    "pytest>=8.2.0",
+    "ruff>=0.4.8",
+    "slowapi>=0.1.9",
+    # Cloud AI providers
+    "openai>=1.0.0",
+    "anthropic>=0.30.0",
+    "google-genai>=0.8.0"
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+select = ["E", "F", "I", "B", "PL", "N"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

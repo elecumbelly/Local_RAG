@@ -1,0 +1,15 @@
+venv
+.venv
+__pycache__
+.DS_Store
+*.pyc
+node_modules
+.next
+dist
+*.log
+coverage/
+backend/.pytest_cache
+backend/.ruff_cache
+secrets/
+.env
+.env.local
