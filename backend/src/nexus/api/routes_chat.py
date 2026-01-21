@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from slowapi.util import get_remote_address
 
 from nexus.api import deps
+from nexus.config import get_settings
 from nexus.embed.ollama_embed import OllamaEmbedder
 from nexus.generate import ollama_chat, validate
 from nexus.generate import openai_chat, anthropic_chat, google_chat
@@ -32,6 +33,12 @@ class ChatRequest(BaseModel):
     temperature: Optional[float] = None
     top_p: Optional[float] = None
     max_tokens: Optional[int] = None
+
+    @model_validator(mode="after")
+    def validate_non_empty_collections(self) -> "ChatRequest":
+        if not self.collections:
+            raise ValueError("collections must not be empty")
+        return self
 
     @property
     def effective_max_tokens(self) -> int:

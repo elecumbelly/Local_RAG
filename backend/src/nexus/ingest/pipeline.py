@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import json
 import logging
 import pathlib
@@ -14,6 +15,7 @@ from nexus.config import get_settings
 from nexus.db import db_connection
 from nexus.embed.ollama_embed import OllamaEmbedder
 from nexus.ingest import chunking, discover, ocr, pdf_extract_pypdf, quality
+from nexus.ingest.mounts import MountValidator, MountValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -167,6 +169,14 @@ async def ingest_collection(name: str) -> IngestSummary:
     if name not in corpora.collections:
         raise ValueError(f"Unknown collection {name}")
     cfg = corpora.collections[name]
+
+    # Validate collection paths before ingest
+    validator = MountValidator()
+    valid_roots = validator.validate_collection_path([pathlib.Path(r) for r in cfg.roots])
+    if not valid_roots:
+        raise MountValidationError(f"No valid roots found for collection {name}")
+    cfg = dataclasses.replace(cfg, roots=[str(r) for r in valid_roots])
+
     logger.info("Starting ingest for collection %s", name)
     discovered = discover.walk_collection(cfg)
     logger.info("Discovered %d files in collection %s", len(discovered), name)

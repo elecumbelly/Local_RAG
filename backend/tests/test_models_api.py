@@ -7,11 +7,26 @@ import httpx
 from fastapi.testclient import TestClient
 
 from nexus.api.main import app
+from nexus.config import Settings, get_settings
 
 
 @pytest.fixture
 def client():
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def override_settings(monkeypatch):
+    """Set up test API key for all tests in this module."""
+    monkeypatch.setenv("NEXUS_API_KEY", "test-key")
+    monkeypatch.setenv("NEXUS_ALLOW_ORIGINS", '["http://localhost:3000"]')
+
+    def _get_settings():
+        return Settings()
+
+    app.dependency_overrides[get_settings] = _get_settings
+    yield
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -33,6 +48,13 @@ def mock_ollama_response():
     }
 
 
+def test_list_ollama_models_requires_api_key(client):
+    """Regression test: /models/ollama should require API key authentication."""
+    response = client.get("/models/ollama")
+    # Without API key header, should return 401
+    assert response.status_code == 401
+
+
 def test_list_ollama_models_success(client, mock_ollama_response):
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = AsyncMock()
@@ -43,7 +65,7 @@ def test_list_ollama_models_success(client, mock_ollama_response):
 
         mock_client_class.return_value = mock_client
 
-        response = client.get("/models/ollama")
+        response = client.get("/models/ollama", headers={"x-api-key": "test-key"})
 
     assert response.status_code == 200
     data = response.json()
@@ -70,7 +92,7 @@ def test_list_ollama_models_sorts_alphabetically(client, mock_ollama_response):
 
         mock_client_class.return_value = mock_client
 
-        response = client.get("/models/ollama")
+        response = client.get("/models/ollama", headers={"x-api-key": "test-key"})
 
     assert response.status_code == 200
     data = response.json()
@@ -88,7 +110,7 @@ def test_list_ollama_models_empty(client):
 
         mock_client_class.return_value = mock_client
 
-        response = client.get("/models/ollama")
+        response = client.get("/models/ollama", headers={"x-api-key": "test-key"})
 
     assert response.status_code == 200
     data = response.json()
@@ -104,6 +126,6 @@ def test_list_ollama_models_ollama_error(client):
 
         mock_client_class.return_value = mock_client
 
-        response = client.get("/models/ollama")
+        response = client.get("/models/ollama", headers={"x-api-key": "test-key"})
 
     assert response.status_code != 200

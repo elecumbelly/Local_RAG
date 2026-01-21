@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import httpx
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from nexus.api import deps
 from nexus.config import get_settings
 
 router = APIRouter(
     prefix="/models",
     tags=["models"],
+    dependencies=[Depends(deps.require_api_key)],
 )
 
 

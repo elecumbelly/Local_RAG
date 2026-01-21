@@ -4,7 +4,7 @@ import pathlib
 from functools import lru_cache
 from typing import List, Optional
 
-from pydantic import Field, model_validator
+from pydantic import BaseModel, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import yaml
 

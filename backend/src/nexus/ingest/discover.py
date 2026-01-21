@@ -9,11 +9,11 @@ from typing import Iterable, List
 import yaml
 from pydantic import BaseModel
 
-from nexus.config import CollectionConfig
+from nexus.config import CollectionConfig, get_settings
 
 
-MAX_FILE_SIZE_MB = 100
-MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+def _max_file_size_bytes() -> int:
+    return get_settings().max_file_size_mb * 1024 * 1024
 
 
 @dataclass
@@ -60,7 +60,7 @@ def walk_collection(cfg: CollectionConfig) -> List[DiscoveredFile]:
 def _check_file_size(path: pathlib.Path) -> bool:
     try:
         stat = path.stat()
-        if stat.st_size > MAX_FILE_SIZE_BYTES:
+        if stat.st_size > _max_file_size_bytes():
             return False
         return True
     except OSError:

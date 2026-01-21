@@ -6,13 +6,14 @@ Nexus RAG allows you to mount additional host directories into the API container
 
 ## Configuration
 
-Add mount configurations to your `.env` file:
+Mounts are defined in `docker-compose.yml`:
 
-```bash
-# Format: host_path:container_path:mode
-NEXUS_MOUNT_DOCUMENTS=/Users/yourname/Documents:/documents:ro
-NEXUS_MOUNT_DOWNLOADS=/Users/yourname/Downloads:/downloads:ro
-NEXUS_MOUNT_PROJECTS=/Users/yourname/Projects:/projects:rw
+```yaml
+services:
+  api:
+    volumes:
+      - /path/to/host/docs:/documents:ro
+      - /path/to/host/projects:/projects:ro
 ```
 
 ## Modes
@@ -82,15 +83,22 @@ collections:
 
 ## Docker Compose
 
-Mounts are defined in `docker-compose.yml`:
+Mounts are defined directly in `docker-compose.yml`:
 
 ```yaml
 services:
   api:
     volumes:
-      - ${NEXUS_MOUNT_DOCUMENTS:-}
-      - ${NEXUS_MOUNT_DOWNLOADS:-}
-      - ${NEXUS_MOUNT_PROJECTS:-}
+      - ${NEXUS_MOUNT_DOCUMENTS:-/Users/jane/Documents:/documents:ro}
+```
+
+Or use fixed paths:
+
+```yaml
+services:
+  api:
+    volumes:
+      - /Users/jane/Documents:/documents:ro
 ```
 
 Empty values (`:-`) make mounts optional - they won't be created if not defined.

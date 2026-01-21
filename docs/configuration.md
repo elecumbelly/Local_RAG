@@ -68,7 +68,6 @@ services:
       - api_key
     environment:
       NEXUS_API_KEY_FILE: /run/secrets/api_key
-      NEXUS_PASSWORD_FILE: /run/secrets/password
 ```
 
 ## corpora.yml Schema
@@ -86,7 +85,7 @@ collections:
   
   dev:
     roots: ["/corpora/dev", "/projects/docs"]
-    include: ["**/*.pdf", "**/*.md"]
+    include: ["**/*.pdf"]
     exclude: []
     tags: ["development"]
   
@@ -100,8 +99,8 @@ collections:
 ### Collection Schema
 | Field | Type | Description |
 |-------|------|-------------|
-| `roots` | List[str] | Absolute paths to PDF root directories (read-only mounts) |
-| `include` | List[str] | Glob patterns to include |
+| `roots` | List[str] | Absolute paths to root directories (read-only mounts) |
+| `include` | List[str] | Glob patterns to include (PDFs only: `**/*.pdf`) |
 | `exclude` | List[str] | Glob patterns to exclude |
 | `tags` | List[str] | Default tags for all documents |
 | `hooks` | Dict | Hook scripts for pre/post processing |

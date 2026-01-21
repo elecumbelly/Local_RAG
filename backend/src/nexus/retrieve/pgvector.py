@@ -18,6 +18,9 @@ async def search_chunks(
     top_k: int,
     min_score: float | None = None,
 ) -> List[RetrievedChunk]:
+    if not collections:
+        return []
+
     settings = get_settings()
     placeholders = ", ".join(["%s"] * len(collections))
     tag_filter = ""
